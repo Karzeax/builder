@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Builder — Kigard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="builder.css">
+</head>
+<body>
+
+<header>
+  <h1>Builder</h1>
+  <p>Construis ton personnage et simule son potentiel</p>
+</header>
+
+<div class="builder-page">
+
+  <!-- Bandeau top : race + PE -->
+  <div class="builder-top">
+    <div class="race-picker">
+      <label for="race">Race</label>
+      <select id="race">
+        <option>Humain</option>
+        <option>Nain</option>
+        <option>Orc</option>
+        <option>Elfe</option>
+        <option>Gnome</option>
+        <option>Halfelin</option>
+        <option>Saurien</option>
+        <option>Fauve</option>
+        <option>Lycan</option>
+      </select>
+    </div>
+    <div class="pe-counter">
+      <span class="label">Points d'évolution</span>
+      <span class="values"><span id="pe-used">0</span><span class="max"> / 10 000</span></span>
+    </div>
+    <div class="pe-bar"><div class="fill" id="pe-bar-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- Onglets -->
+  <nav class="builder-tabs" role="tablist">
+    <button class="builder-tab active" data-target="evolution"  role="tab">Évolution</button>
+    <button class="builder-tab"        data-target="equipment"  role="tab">Équipement</button>
+    <button class="builder-tab"        data-target="profile"    role="tab">Profil</button>
+    <button class="builder-tab"        data-target="skills"     role="tab">Compétences</button>
+  </nav>
+
+  <!-- ===== Onglet Évolution ===== -->
+  <div class="tab-panel" data-tab="evolution">
+    <!-- Bouton reset en haut, aligné à droite -->
+    <div class="reset-row reset-row--top">
+      <button class="reset-btn" id="reset-btn">Réinitialiser les caracs</button>
+    </div>
+    <section class="stats-section">
+      <h2>Caractéristiques</h2>
+      <div class="stats-grid">
+        <div class="stat-col" id="primary-stats"></div>
+        <div class="stat-col" id="secondary-stats"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== Onglet Équipement ===== -->
+  <div class="tab-panel" data-tab="equipment" hidden>
+    <section class="stats-section">
+      <h2>Équipement</h2>
+      <div class="equipment-grid" id="equipment-grid">
+        <!-- Slots injectés en JS dans l'ordre :
+             head | weaponMain
+             chest | weaponOff
+             feet | fetish -->
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== Onglet Compétences (placeholder WIP) ===== -->
+  <div class="tab-panel" data-tab="skills" hidden>
+    <section class="stats-section">
+      <h2>Compétences</h2>
+      <div class="wip-placeholder">
+        <p class="wip-title">Bientôt disponible</p>
+        <p class="wip-desc">
+          Cet onglet permettra de choisir tes compétences (techniques de combat, sortilèges, dons)
+          en respectant les prérequis et les contraintes de réceptacles de sorts.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== Onglet Profil ===== -->
+  <div class="tab-panel" data-tab="profile" hidden>
+    <section class="stats-section">
+      <h2>Profil du personnage</h2>
+      <div class="profile-grid" id="profile-grid">
+        <!-- Cartes de stats injectées en JS -->
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Fiche détaillée d'un item (ouverture depuis le Profil) -->
+<div class="modal-overlay" id="item-details">
+  <div class="modal item-details-modal">
+    <button class="modal-close" type="button" aria-label="Fermer">×</button>
+    <div class="modal-header">
+      <img id="item-details-icon" class="kigard-icon-item" alt="">
+      <div class="item-details-head">
+        <h2 id="item-details-name"></h2>
+        <div class="item-details-sub" id="item-details-sub"></div>
+      </div>
+    </div>
+    <div class="modal-body" id="item-details-body"></div>
+  </div>
+</div>
+
+<!-- Picker d'enchantement -->
+<div class="modal-overlay" id="enchant-picker">
+  <div class="modal gem-picker-modal">
+    <button class="modal-close" type="button" aria-label="Fermer">×</button>
+    <div class="modal-header">
+      <h2 id="enchant-picker-title">Enchanter</h2>
+    </div>
+    <div class="modal-body">
+      <div class="gem-grid" id="enchant-grid"></div>
+    </div>
+    <div class="picker-footer" id="enchant-picker-footer">
+      <button class="picker-remove" id="enchant-remove" type="button">Retirer l'enchantement</button>
+    </div>
+  </div>
+</div>
+
+<!-- Picker de gemmes (sertissage) -->
+<div class="modal-overlay" id="gem-picker">
+  <div class="modal gem-picker-modal">
+    <button class="modal-close" type="button" aria-label="Fermer">×</button>
+    <div class="modal-header">
+      <h2 id="gem-picker-title">Sertir une gemme</h2>
+    </div>
+    <div class="modal-body">
+      <div class="gem-grid" id="gem-grid"></div>
+    </div>
+    <div class="picker-footer" id="gem-picker-footer">
+      <button class="picker-remove" id="gem-remove" type="button">Retirer la gemme</button>
+    </div>
+  </div>
+</div>
+
+<!-- Picker d'items (réutilise les classes modal du bestiaire) -->
+<div class="modal-overlay" id="item-picker">
+  <div class="modal picker-modal">
+    <button class="modal-close" type="button" aria-label="Fermer">×</button>
+    <div class="modal-header">
+      <h2 id="picker-title">Choisir un item</h2>
+    </div>
+    <div class="modal-body">
+      <div class="picker-toolbar">
+        <input type="text" class="picker-search" id="picker-search"
+               placeholder="Rechercher un item…" autocomplete="off"
+               autocorrect="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="picker-list" id="picker-list"></div>
+      <div class="picker-empty" id="picker-empty" hidden>Aucun item ne correspond.</div>
+    </div>
+    <div class="picker-footer" id="picker-footer">
+      <button class="picker-remove" id="picker-remove" type="button">Retirer l'item équipé</button>
+    </div>
+  </div>
+</div>
+
+<script src="items.js"></script>
+<script src="builder.js"></script>
+
+</body>
+</html>
