@@ -50,6 +50,10 @@ body { padding: 0; }
 .race-picker select:focus { border-color: var(--accent); }
 
 .pe-counter {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 10px;
   text-align: right;
   font-family: 'Cinzel', serif;
   letter-spacing: .04em;
@@ -59,13 +63,13 @@ body { padding: 0; }
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--muted);
-  display: block;
-  margin-bottom: 4px;
+  white-space: nowrap;
 }
 .pe-counter .values {
   font-size: 1.2rem;
   font-weight: 700;
   color: #f0f4ff;
+  white-space: nowrap;
 }
 .pe-counter .values.over {
   color: var(--dm);
@@ -127,6 +131,48 @@ body { padding: 0; }
   .builder-tab:hover:not(.active) {
     color: var(--text);
     background: rgba(255,255,255,.03);
+  }
+}
+
+/* Onglets : par défaut on affiche le texte, l'icône est cachée. */
+.builder-tab-icon { display: none; }
+.builder-tab-label { display: inline; }
+
+/* Sur écran moyen : onglets compacts qui se partagent toute la largeur */
+@media (max-width: 540px) {
+  .builder-tabs {
+    gap: 0;
+  }
+  .builder-tab {
+    flex: 1;
+    padding: 10px 4px;
+    font-size: .7rem;
+    letter-spacing: .04em;
+    text-align: center;
+    min-width: 0;
+  }
+  /* Bandeau top : empile race-picker au-dessus du pe-counter pour gagner de la place */
+  .builder-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pe-counter {
+    justify-content: flex-end;
+  }
+  .pe-counter .values {
+    font-size: 1.05rem;
+  }
+}
+
+/* Sur écran très étroit : on bascule en icônes seules pour éviter toute superposition */
+@media (max-width: 360px) {
+  .builder-tab-label { display: none; }
+  .builder-tab-icon  {
+    display: inline-block;
+    font-size: 1.1rem;
+  }
+  .builder-tab {
+    padding: 12px 4px;
   }
 }
 
@@ -1085,17 +1131,18 @@ body { padding: 0; }
    en opacité réduite (rappel visuel que la main est occupée).            */
 .profile-equipment {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;          /* toujours 1 ligne, on rétrécit au lieu de wrap */
   justify-content: center;
-  gap: 10px;
+  gap: clamp(4px, 1.5vw, 10px);
   padding: 12px 0;
   border-top: 1px solid rgba(255,255,255,.05);
   border-bottom: 1px solid rgba(255,255,255,.05);
   margin-bottom: 4px;
 }
 .profile-eq-tile {
-  width: 56px;
-  height: 56px;
+  /* Taille fluide : max 56px sur grand écran, jamais sous 40px sur petit */
+  width: clamp(40px, 12vw, 56px);
+  height: clamp(40px, 12vw, 56px);
   flex: 0 0 auto;
   background: rgba(255,255,255,.03);
   border: 1px solid var(--border);
