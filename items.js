@@ -1690,6 +1690,15 @@ const ITEMS = {
     "slot": "Une main",
     "magicalSpace": 3
   },
+  "428": {
+    "id": 428,
+    "name": "Carnet de novice",
+    "weight": 2,
+    "rank": 1,
+    "weaponType": "Réceptacle de sorts",
+    "slot": "Une main",
+    "magicalSpace": 2
+  },
   "231": {
     "id": 231,
     "name": "Brassard runique",
