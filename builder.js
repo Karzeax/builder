@@ -763,6 +763,14 @@ function summarizeItemStats(item) {
     if (v) permParts.push(`${STAT_LABELS[k]} ${v > 0 ? '+' : ''}${v}%`);
   }
 
+  // Capacité de sortilèges (réceptacles, boucliers magiques) :
+  // affiché comme "N × [icône parchemin]" pour signaler les slots disponibles
+  if (item.magicalSpace) {
+    permParts.push(
+      `${item.magicalSpace} <img src="https://www.kigard.fr/images/items/276.gif?v=2.15.06" class="parch-icon" alt="parchemin" title="emplacement(s) de sortilège">`
+    );
+  }
+
   return [...attackParts, ...permParts].join(' · ');
 }
 
