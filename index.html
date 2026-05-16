@@ -18,21 +18,28 @@
 
 <div class="builder-page">
 
-  <!-- Bandeau top : race + PE -->
+  <!-- Bandeau top : race + rang + PE -->
   <div class="builder-top">
-    <div class="race-picker">
-      <label for="race">Race</label>
-      <select id="race">
-        <option>Humain</option>
-        <option>Nain</option>
-        <option>Orc</option>
-        <option>Elfe</option>
-        <option>Gnome</option>
-        <option>Halfelin</option>
-        <option>Saurien</option>
-        <option>Fauve</option>
-        <option>Lycan</option>
-      </select>
+    <div class="top-left">
+      <div class="race-picker">
+        <label for="race">Race</label>
+        <select id="race">
+          <option>Humain</option>
+          <option>Nain</option>
+          <option>Orc</option>
+          <option>Elfe</option>
+          <option>Gnome</option>
+          <option>Halfelin</option>
+          <option>Saurien</option>
+          <option>Fauve</option>
+          <option>Lycan</option>
+        </select>
+      </div>
+      <div class="rank-badge" id="rank-badge" title="Rang du personnage selon les PE utilisés">
+        <i class="rank-icon fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <span class="rank-label">Rang</span>
+        <span class="rank-name" id="rank-name">Baroudeur</span>
+      </div>
     </div>
     <div class="pe-counter">
       <span class="label">Points d'évolution</span>
@@ -89,17 +96,52 @@
     </section>
   </div>
 
-  <!-- ===== Onglet Compétences (placeholder WIP) ===== -->
+  <!-- ===== Onglet Compétences ===== -->
   <div class="tab-panel" data-tab="skills" hidden>
+
+    <!-- Section Vocations -->
     <section class="stats-section">
-      <h2>Compétences</h2>
-      <div class="wip-placeholder">
-        <p class="wip-title">Bientôt disponible</p>
-        <p class="wip-desc">
-          Cet onglet permettra de choisir tes compétences (techniques de combat, sortilèges, dons)
-          en respectant les prérequis et les contraintes de réceptacles de sorts.
-        </p>
+      <h2>
+        Vocations
+        <span class="section-meta">2 max — consomme 1 slot de capacité chacune</span>
+      </h2>
+      <div class="vocations-grid" id="vocations-grid">
+        <!-- 2 slots injectés en JS -->
       </div>
+    </section>
+
+    <!-- Section Capacités -->
+    <section class="stats-section">
+      <h2>
+        Capacités
+        <span class="section-meta" id="capacities-meta"></span>
+      </h2>
+      <div class="slots-summary" id="slots-summary">
+        <div class="pills" id="slots-pills"></div>
+        <span class="summary-text" id="slots-summary-text"></span>
+      </div>
+      <div class="comp-list" id="comp-list"></div>
+      <button class="comp-add-btn" id="comp-add-btn" type="button">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        <span id="comp-add-label">Ajouter une capacité</span>
+      </button>
+    </section>
+
+    <!-- Section Sortilèges (livre de magie) — visible uniquement si ≥ 1 item équipé a du magicalSpace -->
+    <section class="stats-section" id="spell-book-section" hidden>
+      <h2>
+        Sortilèges <span class="h2-sub">(livre de magie)</span>
+        <span class="section-meta" id="spell-book-meta"></span>
+      </h2>
+      <div class="slots-summary" id="spell-book-summary">
+        <div class="pills" id="spell-book-pills"></div>
+        <span class="summary-text" id="spell-book-summary-text"></span>
+      </div>
+      <div class="comp-list" id="spell-book-list"></div>
+      <button class="comp-add-btn" id="spell-add-btn" type="button">
+        <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+        <span id="spell-add-label">Ajouter un sortilège</span>
+      </button>
     </section>
   </div>
 
@@ -183,7 +225,52 @@
   </div>
 </div>
 
+<!-- Picker de vocations -->
+<div class="modal-overlay" id="vocation-picker">
+  <div class="modal picker-modal">
+    <button class="modal-close" type="button" aria-label="Fermer">×</button>
+    <div class="modal-header">
+      <h2 id="vocation-picker-title">Choisir une vocation</h2>
+    </div>
+    <div class="modal-body">
+      <div class="picker-list" id="vocation-list"></div>
+    </div>
+    <div class="picker-footer" id="vocation-picker-footer">
+      <button class="picker-remove" id="vocation-remove" type="button">Retirer la vocation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Picker de compétences -->
+<div class="modal-overlay" id="comp-picker">
+  <div class="modal picker-modal">
+    <button class="modal-close" type="button" aria-label="Fermer">×</button>
+    <div class="modal-header">
+      <h2 id="comp-picker-title">Choisir une capacité</h2>
+    </div>
+    <div class="modal-body">
+      <div class="picker-toolbar">
+        <input type="text" class="picker-search" id="comp-search"
+               placeholder="Rechercher une capacité…" autocomplete="off"
+               autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="picker-filters" id="comp-filters">
+          <button type="button" class="filter-chip active" data-filter="all">Tout</button>
+          <button type="button" class="filter-chip" data-filter="sortilege">Sortilèges</button>
+          <button type="button" class="filter-chip" data-filter="technique">Techniques</button>
+          <button type="button" class="filter-chip" data-filter="talent">Talents</button>
+        </div>
+      </div>
+      <div class="picker-list" id="comp-picker-list"></div>
+      <div class="picker-empty" id="comp-picker-empty" hidden>Aucune capacité ne correspond.</div>
+    </div>
+    <div class="picker-footer" id="comp-picker-footer">
+      <button class="picker-remove" id="comp-picker-remove" type="button">Retirer la capacité</button>
+    </div>
+  </div>
+</div>
+
 <script src="items.js"></script>
+<script src="competences.js"></script>
 <script src="builder.js"></script>
 
 </body>

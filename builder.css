@@ -108,20 +108,38 @@ body { padding: 0; }
   border-bottom: 1px solid var(--border);
 }
 .builder-tab {
+  /* Largeur partagée équitablement entre les 4 onglets, pour ne jamais déborder
+     même quand on affiche icônes + labels en parallèle. */
+  flex: 1 1 0;
+  min-width: 0;
+  /* Layout interne : icône + label sur la même ligne via inline-flex */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--muted);
   font-family: 'Cinzel', serif;
-  font-size: .9rem;
+  font-size: .85rem;
   font-weight: 700;
-  letter-spacing: .12em;
+  letter-spacing: .08em;
   text-transform: uppercase;
-  padding: 12px 22px;
+  padding: 12px 6px;
+  text-align: center;
   cursor: pointer;
   transition: color .15s, border-color .15s, background .15s;
   margin-bottom: -1px;
   border-radius: 6px 6px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.builder-tab .builder-tab-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .builder-tab.active {
   color: var(--accent2);
@@ -134,27 +152,49 @@ body { padding: 0; }
   }
 }
 
-/* Onglets : par défaut on affiche le texte, l'icône est cachée. */
-.builder-tab-icon { display: none; }
+/* Onglets : icône + label ensemble par défaut (cf mock). Le gap parent gère l'espacement. */
+.builder-tab-icon {
+  display: inline-block;
+  font-size: .95em;
+  opacity: .8;
+  transition: opacity .15s, color .15s;
+  flex-shrink: 0;
+}
 .builder-tab-label { display: inline; }
+.builder-tab.active .builder-tab-icon {
+  opacity: 1;
+  color: var(--accent2);
+}
+@media (hover: hover) {
+  .builder-tab:hover:not(.active) .builder-tab-icon { opacity: 1; }
+}
 
-/* Sur écran moyen : onglets compacts qui se partagent toute la largeur */
-@media (max-width: 540px) {
+/* Dès que la fenêtre devient trop étroite pour les labels complets,
+   on bascule en mode icônes-seules. Plus lisible qu'un ellipsis. */
+@media (max-width: 760px) {
   .builder-tabs {
     gap: 0;
   }
-  .builder-tab {
-    flex: 1;
-    padding: 10px 4px;
-    font-size: .7rem;
-    letter-spacing: .04em;
-    text-align: center;
-    min-width: 0;
+  .builder-tab-label { display: none; }
+  .builder-tab-icon  {
+    font-size: 1.2rem;
+    opacity: 1;
   }
-  /* Bandeau top : empile race-picker au-dessus du pe-counter pour gagner de la place */
+  .builder-tab {
+    padding: 14px 4px;
+    gap: 0;
+  }
+}
+
+/* Bandeau top : empile race+rang puis pe-counter quand on devient étroit */
+@media (max-width: 540px) {
   .builder-top {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
+  }
+  .builder-top .top-left {
+    justify-content: space-between;
   }
   .pe-counter {
     justify-content: flex-end;
@@ -164,16 +204,14 @@ body { padding: 0; }
   }
 }
 
-/* Sur écran très étroit : on bascule en icônes seules pour éviter toute superposition */
+/* Très étroit : race + rang badge l'un sous l'autre */
 @media (max-width: 360px) {
-  .builder-tab-label { display: none; }
-  .builder-tab-icon  {
-    display: inline-block;
-    font-size: 1.1rem;
+  .builder-top .top-left {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
-  .builder-tab {
-    padding: 12px 4px;
-  }
+  .rank-badge { justify-content: center; }
 }
 
 /* ── Sections de stats ── */
@@ -1270,3 +1308,616 @@ body { padding: 0; }
   .stat-btn { width: 26px; height: 26px; }
   .derived-grid { grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   ONGLET COMPÉTENCES (Phase C)
+   ========================================================= */
+
+/* ── Bandeau top : groupement gauche (race + rang) ── */
+.builder-top .top-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(240,180,41,.14), rgba(124,77,255,.14));
+  border: 1px solid rgba(240,180,41,.35);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-family: 'Cinzel', serif;
+  transition: border-color .2s, background .2s;
+}
+.rank-badge .rank-icon {
+  color: var(--gold);
+  font-size: .9rem;
+}
+.rank-badge .rank-label {
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.rank-badge .rank-name {
+  font-size: .95rem;
+  letter-spacing: .04em;
+  font-weight: 700;
+  color: #f0f4ff;
+}
+
+/* En-tête de section avec metadata à droite */
+.stats-section h2 .section-meta {
+  font-family: 'Crimson Pro', serif;
+  font-size: .8rem;
+  letter-spacing: .04em;
+  color: var(--muted);
+  text-transform: none;
+  font-weight: 400;
+  float: right;
+  margin-left: 12px;
+  text-align: right;
+  /* Préserve l'aspect "au-dessus de la ligne du titre" même quand le texte wrappe */
+  line-height: 1.4;
+  max-width: 60%;
+}
+@media (max-width: 540px) {
+  .stats-section h2 .section-meta {
+    float: none;
+    display: block;
+    margin-left: 0;
+    margin-top: 4px;
+    max-width: 100%;
+    text-align: left;
+  }
+}
+
+/* ── Vocations ── */
+.vocations-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 540px) {
+  .vocations-grid { grid-template-columns: 1fr; }
+}
+.vocation-slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,.025);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  text-align: left;
+  font-family: 'Crimson Pro', serif;
+  color: var(--text);
+  width: 100%;
+}
+@media (hover: hover) {
+  .vocation-slot:hover {
+    border-color: var(--accent);
+    background: rgba(124,77,255,.06);
+  }
+}
+.vocation-slot.filled {
+  border-style: solid;
+  border-color: rgba(124,77,255,.5);
+  background: rgba(124,77,255,.08);
+}
+.vocation-slot .voc-icon {
+  width: 36px; height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(124,77,255,.18);
+  border-radius: 8px;
+  color: var(--accent2);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.vocation-slot .voc-info {
+  flex: 1;
+  min-width: 0;
+}
+.vocation-slot .voc-name {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--text);
+  display: block;
+}
+.vocation-slot .voc-desc {
+  font-size: .8rem;
+  color: var(--muted);
+  font-style: italic;
+  display: block;
+  margin-top: 2px;
+}
+.vocation-slot .voc-empty {
+  color: var(--muted);
+  font-style: italic;
+  flex: 1;
+}
+.vocation-slot .voc-plus {
+  width: 28px; height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--muted);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+/* Slot vocation verrouillé (slot 2 quand slot 1 est vide) */
+.vocation-slot.locked {
+  opacity: .45;
+  cursor: not-allowed;
+  border-style: dashed;
+  background: transparent;
+}
+.vocation-slot.locked:hover {
+  border-color: var(--border);
+  background: transparent;
+}
+.vocation-slot .voc-plus--locked {
+  border-style: solid;
+  font-size: .85rem;
+}
+.vocation-slot .voc-remove {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.vocation-slot .voc-remove:hover {
+  color: var(--dm);
+  background: rgba(248,113,113,.08);
+}
+
+/* ── Slots de capacités : récap visuel ── */
+.slots-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: rgba(192,132,252,.05);
+  border: 1px solid rgba(192,132,252,.18);
+  border-radius: 10px;
+}
+.slots-summary .pills {
+  display: flex;
+  gap: 5px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.slot-pill {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.02);
+}
+.slot-pill.voc {
+  background: rgba(124,77,255,.5);
+  border-color: var(--accent);
+}
+.slot-pill.used {
+  background: rgba(192,132,252,.7);
+  border-color: var(--accent2);
+}
+.slots-summary .summary-text {
+  font-size: .85rem;
+  color: var(--muted);
+  font-family: 'Cinzel', serif;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+.slots-summary .summary-text strong {
+  color: var(--text);
+  font-weight: 700;
+}
+.slots-summary.over {
+  border-color: rgba(248,113,113,.5);
+  background: rgba(248,113,113,.06);
+}
+.slots-summary.over .summary-text strong {
+  color: var(--dm);
+}
+
+/* Pastilles spécifiques au livre de magie (or au lieu de violet) */
+.slot-pill--spell {
+  background: rgba(240,180,41,.12);
+  border-color: rgba(240,180,41,.35);
+}
+.slot-pill--spell.used {
+  background: rgba(240,180,41,.55);
+  border-color: var(--gold);
+}
+
+/* Sous-titre "(livre de magie)" en h2 — discret */
+.stats-section h2 .h2-sub {
+  font-family: 'Crimson Pro', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: .9em;
+  text-transform: none;
+  letter-spacing: .02em;
+  color: var(--muted);
+  margin-left: 4px;
+}
+.stats-section h2 .section-meta .meta-warn {
+  color: var(--dm);
+}
+
+/* ── Liste des compétences équipées ── */
+.comp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.comp-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.025);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color .15s;
+}
+.comp-card:hover {
+  border-color: rgba(192,132,252,.4);
+}
+.comp-card .comp-icon {
+  width: 32px; height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: .95rem;
+  flex-shrink: 0;
+}
+.comp-card .comp-icon.sortilege { background: rgba(124,77,255,.18); color: var(--accent2); }
+.comp-card .comp-icon.technique { background: rgba(248,113,113,.15); color: var(--dm); }
+.comp-card .comp-icon.talent    { background: rgba(34,197,94,.15);  color: var(--hp); }
+
+.comp-card .comp-body {
+  flex: 1;
+  min-width: 0;
+}
+.comp-card .comp-name {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--text);
+}
+.comp-card .comp-meta {
+  font-size: .82rem;
+  color: var(--muted);
+  margin-top: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  align-items: center;
+}
+.comp-card .comp-meta .pa { color: var(--gold); font-weight: 700; }
+.comp-card .comp-meta .pm { color: var(--accent2); font-weight: 700; }
+.comp-card .comp-meta .voc { color: var(--accent2); font-style: italic; }
+.comp-card .comp-meta .warn { color: var(--dm); }
+.comp-card .elem-icon, .comp-card .status-icon {
+  height: 14px;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+.comp-card .comp-remove {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 1.05rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.comp-card .comp-remove:hover {
+  color: var(--dm);
+  background: rgba(248,113,113,.08);
+}
+
+/* Lignes de plages de dégâts (bloqué / normal / critique) sous le meta */
+.dmg-lines {
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 14px;
+  row-gap: 2px;
+  font-family: 'Cinzel', serif;
+  font-size: .82rem;
+  max-width: 260px;
+}
+.dmg-row {
+  display: contents;
+}
+.dmg-row .dmg-label {
+  color: var(--muted);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: .74rem;
+  align-self: center;
+}
+.dmg-row .dmg-value {
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.dmg-row:last-child .dmg-value {
+  /* Critique mis en valeur en or */
+  color: var(--gold);
+}
+.dmg-row:first-child .dmg-value {
+  /* Bloqué en gris atténué */
+  color: var(--arm);
+  font-weight: 600;
+}
+/* Ligne "Jet" (précision) — au-dessus, séparée des plages de dégâts */
+.dmg-row--precision {
+  margin-bottom: 3px;
+  padding-bottom: 3px;
+  border-bottom: 1px dashed rgba(255,255,255,.05);
+}
+.dmg-row--precision .dmg-label {
+  color: var(--accent2);
+}
+.dmg-row--precision .dmg-value {
+  color: var(--text) !important;
+  font-weight: 700;
+}
+.dmg-prec-detail {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: .82em;
+  color: var(--muted);
+  margin-left: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.dmg-lines--heal .dmg-row .dmg-value {
+  color: var(--hp);
+}
+.dmg-lines--heal .dmg-row:last-child .dmg-value {
+  color: var(--gold); /* critique heal (uniquement si critMul ≠ 1) */
+}
+.dmg-lines .dmg-value .elem-icon {
+  height: 13px;
+  vertical-align: middle;
+  margin-left: 3px;
+}
+.dmg-error {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-style: italic;
+  font-family: 'Crimson Pro', serif;
+  font-size: .8rem;
+}
+
+/* Carte compétence avec prérequis perdu (auto-grisée mais conservée) */
+.comp-card.broken {
+  opacity: .65;
+  border-style: dashed;
+  border-color: var(--dm);
+}
+.comp-card.broken .dmg-lines { display: none; }
+.comp-card.broken .comp-name::after {
+  content: " (inactive)";
+  color: var(--dm);
+  font-size: .8rem;
+  font-weight: 400;
+}
+
+/* Bouton d'ajout en bas */
+.comp-add-btn {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: rgba(124,77,255,.06);
+  border: 1px dashed rgba(124,77,255,.4);
+  border-radius: 10px;
+  color: var(--accent2);
+  font-family: 'Cinzel', serif;
+  font-size: .82rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.comp-add-btn:hover:not(.disabled) {
+  background: rgba(124,77,255,.12);
+  border-color: var(--accent);
+}
+.comp-add-btn.disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+/* ── Liste vide d'invitation ── */
+.comp-list-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-style: italic;
+  font-size: .9rem;
+}
+
+/* =========================================================
+   PICKER DE COMPÉTENCES & DE VOCATIONS
+   ========================================================= */
+
+/* Filtres par catégorie dans le picker compétences */
+.picker-toolbar .picker-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+/* Le display:flex ci-dessus a une spécificité plus haute que [hidden] natif :
+   on force la règle quand l'attribut hidden est posé (mode picker spell). */
+.picker-toolbar .picker-filters[hidden] {
+  display: none;
+}
+.filter-chip {
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: .76rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  letter-spacing: .08em;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.filter-chip:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.filter-chip.active {
+  background: rgba(124,77,255,.18);
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+
+/* En-têtes de groupes dans le picker compétences (apprenables / équipées / incompat.) */
+.picker-group-header {
+  font-family: 'Cinzel', serif;
+  font-size: .72rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  padding: 14px 16px 4px;
+  color: var(--muted);
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  background: rgba(255,255,255,.012);
+}
+.picker-group-header:first-child { padding-top: 8px; }
+.picker-group-header--0 { color: var(--accent2); }
+.picker-group-header--1 { color: var(--hp); }
+.picker-group-header--2 { color: var(--gold); opacity: .85; }
+.picker-group-header--3 { color: var(--dm); opacity: .8; }
+
+/* Items du picker compétences (variante de .picker-item du bestiaire) */
+.picker-item.comp-pick {
+  align-items: flex-start;
+}
+.picker-item.comp-pick .picker-icon {
+  width: 32px; height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: .95rem;
+  flex-shrink: 0;
+}
+.picker-item.comp-pick .picker-icon.sortilege { background: rgba(124,77,255,.18); color: var(--accent2); }
+.picker-item.comp-pick .picker-icon.technique { background: rgba(248,113,113,.15); color: var(--dm); }
+.picker-item.comp-pick .picker-icon.talent    { background: rgba(34,197,94,.15);  color: var(--hp); }
+
+.picker-item.equipped {
+  background: rgba(34,197,94,.06);
+}
+.picker-item.equipped .picker-equipped-tag {
+  color: var(--hp);
+  font-size: .72rem;
+  margin-left: auto;
+  font-family: 'Cinzel', serif;
+  letter-spacing: .1em;
+  white-space: nowrap;
+  align-self: center;
+}
+.picker-incompat-reason i {
+  margin-right: 5px;
+  color: var(--dm);
+}
+.picker-incompat-reason strong {
+  color: var(--text);
+}
+
+/* Vocation picker : items pleine largeur, icone + nom + desc */
+.vocation-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  font-family: 'Crimson Pro', serif;
+  transition: background .12s;
+}
+.vocation-pick-item:hover { background: rgba(124,77,255,.06); }
+.vocation-pick-item.equipped { background: rgba(34,197,94,.06); }
+.vocation-pick-item.incompatible {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.vocation-pick-item.incompatible:hover { background: transparent; }
+.vocation-pick-item .voc-icon {
+  width: 36px; height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(124,77,255,.18);
+  border-radius: 8px;
+  color: var(--accent2);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.vocation-pick-item .voc-body {
+  flex: 1;
+  min-width: 0;
+}
+.vocation-pick-item .voc-name {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--text);
+}
+.vocation-pick-item .voc-desc {
+  font-size: .8rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 2px;
+}
+.vocation-pick-item .voc-reason {
+  font-size: .78rem;
+  color: var(--dm);
+  font-style: italic;
+  margin-top: 4px;
+}
+.vocation-pick-item .voc-equipped-tag {
+  color: var(--hp);
+  font-size: .72rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: .1em;
+  white-space: nowrap;
+}
+
